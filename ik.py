@@ -103,13 +103,17 @@ def ccd(goal, base):
     end = getendchild(base)
     cur = end
     while distance(cur, goal) > 0.01 and i < (10*getchildcount(base)):
+        # Re-evalute scene
+        # If you don't do this result will look weird after a couple of iterations
+        FBSystem().Scene.Evaluate()
+
         # Build vector from pivot to effector
-        v1 = createvector(cur, end)
+        v1 = createvector(end, cur)
         # Build vector from pivot to target (goal)
-        v2 = createvector(cur, goal)
+        v2 = createvector(goal, cur)
         rotate(v1, v2, cur)
         if cur == base:
-            cur = end
+            cur = getendchild(base)
         else:
             cur = cur.Parent
         i += 1
