@@ -1,5 +1,6 @@
 from pyfbsdk import *
 
+# Copied from math_utils.py
 def skew_sym(v):
     '''
     Returns skew-symetric matrix for vector v
@@ -13,7 +14,6 @@ def skew_sym(v):
     # IMPORTANT!: In MoBu, matrices are row-major, need to transpose it
     m.Transpose()
     return m
-
 
 def align_matrix(a, b):
     '''
@@ -40,20 +40,11 @@ def align_matrix(a, b):
     R[15] = 1  # Can' use 3x3 here
     return R
 
-# Extract position from object
+# Extract position from a node
 def getPos(node):
     m_pos = FBVector3d()
     node.GetVector(m_pos, FBModelTransformationType.kModelTransformation)
     return m_pos
-
-# Extract rotation matrix from object
-def getRotMatrix(name):
-    marker = FBFindModelByLabelName(name)
-    global_R = FBMatrix()
-    local_R = FBMatrix()
-    marker.GetMatrix(global_R, FBModelTransformationType.kModelRotation, True)
-    marker.GetMatrix(local_R, FBModelTransformationType.kModelRotation, False)
-    return
 
 # Modified from rotate function from cheatsheet
 def rotate(v1, v2, marker):
@@ -72,12 +63,14 @@ def rotate(v1, v2, marker):
     return
 
 # Return distance between two nodes A & B
+# Use it for while loop condition
 def distance(A, B):
     Apos = getPos(A)
     Bpos = getPos(B)
     diff = Apos - Bpos
     return diff.Length()
 
+# Return total children of a node
 def getchildcount(node):
     count = 0
     while len(node.Children)!=0:
@@ -85,18 +78,19 @@ def getchildcount(node):
         count += 1
     return count
 
-
 def getendchild(base):
     node = base
     while len(node.Children)!=0:
         node = node.Children[0]
     return node
 
+# Create a vector between point a and b
 def createvector(a, b):
     A = getPos(a)
     B = getPos(b)
     return FBVector3d(A[0]-B[0], A[1]-B[1], A[2]-B[2])
 
+# Main Inverse Kinematic Algorithm
 def ccd(goal, base):
     i = 0
     # Move cursor to the end child
@@ -111,9 +105,10 @@ def ccd(goal, base):
         v1 = createvector(end, cur)
         # Build vector from pivot to target (goal)
         v2 = createvector(goal, cur)
+        # Calculate and apply rotate matrix
         rotate(v1, v2, cur)
         if cur == base:
-            cur = getendchild(base)
+            cur = end
         else:
             cur = cur.Parent
         i += 1
