@@ -58,7 +58,7 @@ def getRotMatrix(name):
 # Modified from rotate function from cheatsheet
 def rotate(v1, v2, marker):
     # Define Rotation
-    target_M = align_matrix(v2, v1) # Represent rotation as a matrix
+    target_M = align_matrix(v1, v2) # Represent rotation as a matrix
 
     # Take current marker orientation
     cur_Ori = FBMatrix()
@@ -104,9 +104,9 @@ def ccd(goal, base):
     cur = end
     while distance(cur, goal) > 0.01 and i < (10*getchildcount(base)):
         # Build vector from pivot to effector
-        v1 = createvector(end, cur)
+        v1 = createvector(cur, end)
         # Build vector from pivot to target (goal)
-        v2 = createvector(goal, cur)
+        v2 = createvector(cur, goal)
         rotate(v1, v2, cur)
         if cur == base:
             cur = end
