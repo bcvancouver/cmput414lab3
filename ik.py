@@ -1,5 +1,45 @@
 from pyfbsdk import *
 
+def skew_sym(v):
+    '''
+    Returns skew-symetric matrix for vector v
+    '''
+    m = FBMatrix([
+        0, -v[2], v[1], 0,
+        v[2], 0, -v[0], 0,
+        -v[1], v[0], 0, 0,
+        0, 0, 0, 1
+    ])
+    # IMPORTANT!: In MoBu, matrices are row-major, need to transpose it
+    m.Transpose()
+    return m
+
+
+def align_matrix(a, b):
+    '''
+    Returns matrix that rotates vector a onto vector b
+    '''
+    # Turn them into unit vectors
+    a.Normalize()
+    b.Normalize()
+
+    v = a.CrossProduct(b)
+    s = v.Length()  # Sin of angle
+    c = a.DotProduct(b)  # Cos of angle
+
+    # Load identity
+    I = FBMatrix()
+
+    # a is prallel to b ( return identity)
+    if v.Length() == 0:
+        return I
+
+    skew_M = skew_sym(v)
+
+    R = I + skew_M + (skew_M * skew_M) * ((1 - c) / (s * s))
+    R[15] = 1  # Can' use 3x3 here
+    return R
+
 # Extract position from object
 def getPos(node):
     m_pos = FBVector3d()
@@ -15,16 +55,12 @@ def getRotMatrix(name):
     marker.GetMatrix(local_R, FBModelTransformationType.kModelRotation, False)
     return
 
-# Rotate target by 90 degrees around Y axis
-
-def rotate(name, direction):
+# Modified from rotate function from cheatsheet
+def rotate(v1, v2, marker):
     # Define Rotation
-    target_rot = FBVector3d(direction.X, direction.Y, direction.Z)
-    target_M = FBMatrix()
-    FBRotationToMatrix(target_M, target_rot) # Represent rotation as a matrix
+    target_M = align_matrix(v2, v1) # Represent rotation as a matrix
 
     # Take current marker orientation
-    marker = FBFindModelByLabelName(name)
     cur_Ori = FBMatrix()
     marker.GetMatrix(cur_Ori, FBModelTransformationType.kModelRotation, False)
 
@@ -33,6 +69,7 @@ def rotate(name, direction):
     ori_vec = FBVector3d()
     FBMatrixToRotation(ori_vec, final_Ori) # Go back to a vector representation
     marker.Rotation = ori_vec
+    return
 
 # Return distance between two nodes
 def distance(A, B):
@@ -42,8 +79,12 @@ def distance(A, B):
     return diff.Length()
 
 def getchildcount(node):
-    print node.Children
-    return len(node.Children)
+    count = 0
+    while len(node.Children)!=0:
+        node = node.Children[0]
+        count += 1
+    return count
+
 
 def getendchild(base):
     node = base
@@ -51,13 +92,28 @@ def getendchild(base):
         node = node.Children[0]
     return node
 
+def createvector(a, b):
+    A = getPos(a)
+    B = getPos(b)
+    return FBVector3d(A[0]-B[0], A[1]-B[1], A[2]-B[2])
+
 def ccd(goal, base):
     i = 0
+    # Move cursor to the end child
     end = getendchild(base)
-    while distance(end, goal) > 0.01 and i < (10*getchildcount(base)):
-        # Take current bone
-        #print i
+    cur = end
+    while distance(cur, goal) > 0.01 and i < (10*getchildcount(base)):
+        # Build vector from pivot to effector
+        v1 = createvector(end, cur)
+        # Build vector from pivot to target (goal)
+        v2 = createvector(goal, cur)
+        rotate(v1, v2, cur)
+        if cur == base:
+            cur = end
+        else:
+            cur = cur.Parent
         i += 1
+    return
 
 def main():
     goal = FBFindModelByLabelName('Goal')
