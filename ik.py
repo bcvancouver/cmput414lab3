@@ -71,7 +71,7 @@ def rotate(v1, v2, marker):
     marker.Rotation = ori_vec
     return
 
-# Return distance between two nodes
+# Return distance between two nodes A & B
 def distance(A, B):
     Apos = getPos(A)
     Bpos = getPos(B)
