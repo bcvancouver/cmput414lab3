@@ -38,22 +38,30 @@ def rotate(name, direction):
 def distance(A, B):
     Apos = getPos(A)
     Bpos = getPos(B)
+    diff = Apos - Bpos
     return diff.Length()
 
 def getchildcount(node):
+    print node.Children
     return len(node.Children)
 
-def ccd(goal, node):
+def getendchild(base):
+    node = base
+    while len(node.Children)!=0:
+        node = node.Children[0]
+    return node
+
+def ccd(goal, base):
     i = 0
-    
-    while distance(node, goal)>0.01 and i<(10*getchildcount(node)) :
+    end = getendchild(base)
+    while distance(end, goal) > 0.01 and i < (10*getchildcount(base)):
         # Take current bone
-        
+        #print i
         i += 1
 
 def main():
     goal = FBFindModelByLabelName('Goal')
-    chain_base= FBFindModelByLabelName('Node')
+    chain_base = FBFindModelByLabelName('Node')
     
     ccd(goal, chain_base)
     
