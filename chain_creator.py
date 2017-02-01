@@ -32,5 +32,5 @@ def create_goal(init_pos):
 n_nodes=5 # Always at least 2
 bone_len=50
 create_chain(n_nodes,bone_len)
-initial_pos = FBVector3d(0,200,0)
+initial_pos = FBVector3d(10,100,0)
 create_goal(initial_pos)

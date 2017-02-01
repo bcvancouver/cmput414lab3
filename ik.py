@@ -1,17 +1,10 @@
 from pyfbsdk import *
 
-# class object storing rotation degrees on X, Y, Z axis
-class direction(x,y,z):
-    def __init__(self,x,y,z):
-        X=x
-        Y=y
-        Z=z
-
 # Extract position from object
-def getPos(name):
-    marker = FBFindModelByLabelName(name)
+def getPos(node):
     m_pos = FBVector3d()
-    return marker.GetVector(m_pos, FBModelTransformationType.kModelTransformation)
+    node.GetVector(m_pos, FBModelTransformationType.kModelTransformation)
+    return m_pos
 
 # Extract rotation matrix from object
 def getRotMatrix(name):
@@ -41,8 +34,27 @@ def rotate(name, direction):
     FBMatrixToRotation(ori_vec, final_Ori) # Go back to a vector representation
     marker.Rotation = ori_vec
 
+# Return distance between two nodes
+def distance(A, B):
+    Apos = getPos(A)
+    Bpos = getPos(B)
+    return diff.Length()
+
+def getchildcount(node):
+    return len(node.Children)
+
+def ccd(goal, node):
+    i = 0
+    
+    while distance(node, goal)>0.01 and i<(10*getchildcount(node)) :
+        # Take current bone
+        
+        i += 1
+
 def main():
-    # modify rotation
-    chain_node.Rotation = r
-    # Re-evaluate scene
-    FBSystem().Scene.Evaluate()
+    goal = FBFindModelByLabelName('Goal')
+    chain_base= FBFindModelByLabelName('Node')
+    
+    ccd(goal, chain_base)
+    
+main()

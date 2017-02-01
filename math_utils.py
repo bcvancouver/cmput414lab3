@@ -1,6 +1,5 @@
 from pyfbsdk import *
 
-
 def skew_sym(v):
     '''
     Returns skew-symetric matrix for vector v
